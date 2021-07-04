@@ -1,0 +1,505 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.storage.mapper.OrderMapper">
+
+    <resultMap type="com.ruoyi.project.storage.domain.vo.OrderVo" id="OrderResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="status" column="status"/>
+        <result property="orderCode" column="order_code"/>
+        <result property="orderName" column="order_name"/>
+        <result property="emptyBoxOrderTime" column="empty_box_order_time"/>
+        <result property="heavyBoxOrderTime" column="heavy_box_order_time"/>
+        <result property="heavyBoxOrderTime" column="heavy_box_order_time"/>
+        <result property="emptyBoxCallName" column="empty_box_call_name"/>
+        <result property="emptyBoxCallPhone" column="empty_box_call_phone"/>
+        <result property="emptyBoxCallAddress" column="empty_box_call_address"/>
+        <result property="emptyBoxCallTime" column="empty_box_call_time"/>
+        <result property="emptyBoxCallInterval" column="empty_box_call_interval"/>
+        <result property="heavyBoxCallName" column="heavy_box_call_name"/>
+        <result property="heavyBoxCallPhone" column="heavy_box_call_phone"/>
+        <result property="heavyBoxCallAddress" column="heavy_box_call_address"/>
+        <result property="heavyBoxCallTime" column="heavy_box_call_time"/>
+        <result property="heavyBoxCallInterval" column="heavy_box_call_interval"/>
+        <result property="boxId" column="box_id"/>
+        <result property="boxCode" column="box_code"/>
+        <result property="boxStandard" column="box_standard"/>
+        <result property="boxUnitPrice" column="box_unit_price"/>
+        <result property="leaseDuration" column="lease_duration"/>
+        <result property="totalPrice" column="total_price"/>
+        <result property="sortNo" column="sort_no"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="version" column="version"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="appDelFlag" column="app_del_flag"/>
+        <result property="backendDelFlag" column="backend_del_flag"/>
+    </resultMap>
+
+    <!--订单Vo查询sql-->
+    <sql id="selectOrderVo">
+     select
+	     t.id,
+	     t.user_id,
+     	 s.nick_name,
+	     t.status,
+	     t.order_code,
+	     t.order_name,
+	     t.empty_box_order_time,
+	     t.heavy_box_order_time,
+	     t.empty_box_call_time,
+	     t.empty_box_call_phone,
+	     t.empty_box_call_address,
+	     t.empty_box_call_name,
+	     t.empty_box_call_interval,
+	     t.heavy_box_call_name,
+	     t.heavy_box_call_phone,
+	     t.heavy_box_call_address,
+	     t.heavy_box_call_time,
+	     t.heavy_box_call_interval,
+	     t.box_id,
+	     t.box_code,
+	     t.box_standard,
+	     t.box_unit_price,
+	     t.lease_duration,
+	     t.total_price,
+	     t.sort_no,
+	     t.create_time,
+	     t.create_by,
+	     t.update_time,
+	     t.update_by,
+	     t.version,
+	     t.del_flag,
+	     t.app_del_flag,
+	     t.backend_del_flag
+     from
+	     t_order t
+     left join sys_user s on t.user_id = s.user_id
+	</sql>
+
+    <!--订单查询sql-->
+    <sql id="selectOrder">
+    select
+        id,
+        user_id,
+        status,
+        order_code,
+        order_name,
+        empty_box_order_time,
+        heavy_box_order_time,
+        empty_box_call_time,
+        empty_box_call_phone,
+        empty_box_call_address,
+        empty_box_call_name,
+        empty_box_call_interval,
+        heavy_box_call_name,
+        heavy_box_call_phone,
+        heavy_box_call_address,
+        heavy_box_call_time,
+        heavy_box_call_interval,
+        box_id,
+        box_code,
+        box_standard,
+        box_unit_price,
+        lease_duration,
+        total_price,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag,
+        app_del_flag,
+        backend_del_flag
+    from
+        t_order
+    </sql>
+
+    <!--手机端订单列表查询-->
+    <select id="selectAppOrderList" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo" resultMap="OrderResult">
+        <include refid="selectOrderVo"/>
+        where
+        t.user_id = #{userId}
+        and t.app_del_flag = 0
+        order by t.update_time desc
+    </select>
+
+    <!--手机端订单详情查询-->
+    <select id="selectAppOrderById" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo"
+            resultMap="OrderResult">
+        <include refid="selectOrderVo"/>
+        where
+        t.user_id = #{userId}
+        and t.app_del_flag = 0
+        and t.id = #{id}
+    </select>
+
+    <!--后台端订单列表查询-->
+    <select id="selectBackendOrderList" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo"
+            resultMap="OrderResult">
+        <include refid="selectOrderVo"/>
+        <where>
+            <if test="nickName != null and nickName != '' ">
+                and s.nick_name like concat(#{nickName}, '%')
+            </if>
+            <if test="status != null and status != '' ">
+                and t.status = #{status}
+            </if>
+            <if test="emptyBoxOrderTimeStart != null and emptyBoxOrderTimeStart!='' ">and t.empty_box_order_time
+                &gt;= concat(#{emptyBoxOrderTimeStart},'00:00:00')
+            </if>
+            <if test="emptyBoxOrderTimeEnd != null and emptyBoxOrderTimeEnd!='' ">and t.empty_box_order_time
+                &lt;= concat(#{emptyBoxOrderTimeEnd},'23:59:59')
+            </if>
+            <if test="heavyBoxOrderTimeStart != null and heavyBoxOrderTimeStart!='' ">and t.heavy_box_order_time
+                &gt;=concat(#{heavyBoxOrderTimeStart},'00:00:00')
+            </if>
+            <if test="heavyBoxOrderTimeEnd != null and heavyBoxOrderTimeEnd!='' ">and t.heavy_box_order_time
+                &lt;= concat(#{heavyBoxOrderTimeEnd},'23:59:59')
+            </if>
+            and t.backend_del_flag = 0
+            order by update_time desc
+        </where>
+    </select>
+
+    <!--后台端订单详情查询-->
+    <select id="selectBackendOrderById" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo"
+            resultMap="OrderResult">
+        <include refid="selectOrderVo"/>
+        where t.del_flag = '0'
+        and t.id = #{id}
+    </select>
+
+    <!--手机端新增订单-->
+    <insert id="insertOrder" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId !=null and userId !=''">user_id,</if>
+            <if test="status !=null and status !=''">status,</if>
+            <if test="orderCode !=null and orderCode !=''">order_code,</if>
+            <if test="orderName !=null and orderName !=''">order_name,</if>
+            <if test="emptyBoxOrderTime !=null ">empty_box_order_time,</if>
+            <if test="heavyBoxOrderTime !=null ">heavy_box_order_time,</if>
+            <if test="emptyBoxCallName !=null and emptyBoxCallName !=''">empty_box_call_name,</if>
+            <if test="emptyBoxCallPhone !=null and emptyBoxCallPhone !=''">empty_box_call_phone,</if>
+            <if test="emptyBoxCallAddress !=null and emptyBoxCallAddress !=''">empty_box_call_address,</if>
+            <if test="emptyBoxCallTime !=null ">empty_box_call_time,</if>
+            <if test="emptyBoxCallInterval !=null and emptyBoxCallInterval !='' ">empty_box_call_interval,</if>
+            <if test="heavyBoxCallName !=null ">heavy_box_call_name,</if>
+            <if test="heavyBoxCallPhone !=null ">heavy_box_call_phone,</if>
+            <if test="heavyBoxCallAddress !=null ">heavy_box_call_address,</if>
+            <if test="heavyBoxCallTime !=null ">heavy_box_call_time,</if>
+            <if test="heavyBoxCallInterval !=null ">heavy_box_call_interval,</if>
+            <if test="boxId !=null and boxId !=''">box_id,</if>
+            <if test="boxCode !=null and boxCode !=''">box_code,</if>
+            <if test="boxStandard !=null and boxStandard !=''">box_standard,</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">box_unit_price,</if>
+            <if test="leaseDuration !=null and leaseDuration !=''">lease_duration,</if>
+            <if test="totalPrice !=null and totalPrice !=''">total_price,</if>
+            <if test="sortNo !=null ">sort_no,</if>
+            <if test="createTime !=null ">create_time,</if>
+            <if test="createBy !=null and createBy !=''">create_by,</if>
+            <if test="updateTime !=null ">update_time,</if>
+            <if test="updateBy !=null and updateBy !=''">update_by,</if>
+            <if test="version !=null ">version,</if>
+            <if test="delFlag !=null and delFlag !=''">del_flag,</if>
+            <if test="appDelFlag !=null ">app_del_flag,</if>
+            <if test="backendDelFlag !=null ">backend_del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId !=null and userId !=''">#{userId},</if>
+            <if test="status !=null and status !=''">#{status},</if>
+            <if test="orderCode !=null and orderCode !=''">#{orderCode},</if>
+            <if test="orderName !=null and orderName !=''">#{orderName},</if>
+            <if test="emptyBoxOrderTime !=null ">#{emptyBoxOrderTime},</if>
+            <if test="heavyBoxOrderTime !=null">#{heavyBoxOrderTime},</if>
+            <if test="emptyBoxCallName !=null and emptyBoxCallName !=''">#{emptyBoxCallName},</if>
+            <if test="emptyBoxCallPhone !=null and emptyBoxCallPhone !=''">#{emptyBoxCallPhone},</if>
+            <if test="emptyBoxCallAddress !=null and emptyBoxCallAddress !=''">#{emptyBoxCallAddress},</if>
+            <if test="emptyBoxCallTime !=null ">#{emptyBoxCallTime},</if>
+            <if test="emptyBoxCallInterval !=null and emptyBoxCallInterval !='' ">#{emptyBoxCallInterval},</if>
+            <if test="heavyBoxCallName !=null">#{heavyBoxCallName},</if>
+            <if test="heavyBoxCallPhone !=null">#{heavyBoxCallPhone},</if>
+            <if test="heavyBoxCallAddress !=null">#{heavyBoxCallAddress},</if>
+            <if test="heavyBoxCallTime !=null">#{heavyBoxCallTime},</if>
+            <if test="heavyBoxCallInterval !=null">#{heavyBoxCallInterval},</if>
+            <if test="boxId !=null and boxId !=''">#{boxId},</if>
+            <if test="boxCode !=null and boxCode !=''">#{boxCode},</if>
+            <if test="boxStandard !=null and boxStandard !=''">#{boxStandard},</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">#{boxUnitPrice},</if>
+            <if test="leaseDuration !=null and leaseDuration !=''">#{leaseDuration},</if>
+            <if test="totalPrice !=null and totalPrice !=''">#{totalPrice},</if>
+            <if test="sortNo !=null ">#{sortNo},</if>
+            <if test="createTime !=null ">#{createTime},</if>
+            <if test="createBy !=null and createBy !=''">#{createBy},</if>
+            <if test="updateTime !=null ">#{updateTime},</if>
+            <if test="updateBy !=null and updateBy !=''">#{updateBy},</if>
+            <if test="version !=null ">#{version},</if>
+            <if test="delFlag !=null and delFlag !=''">#{delFlag},</if>
+            <if test="appDelFlag !=null ">#{appDelFlag},</if>
+            <if test="backendDelFlag !=null ">#{backendDelFlag},</if>
+        </trim>
+    </insert>
+
+    <!--订单操作-->
+    <update id="operateOrderByIds" parameterType="Map">
+        update t_order
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="operate != null ">
+                status = #{operate},
+                version = version + 1,
+                update_time = #{time},
+                update_by = #{user}
+            </if>
+        </trim>
+        where version = #{version}
+        and status = #{operate} -1
+        and user_id = #{UserIdById}
+        and id = #{id}
+        and app_del_flag = 0
+        and backend_del_flag = 0
+    </update>
+
+    <!--手机端订单删除操作-->
+    <update id="operateAppDelete" parameterType="Map">
+        update
+            t_order
+        set
+            app_del_flag = 2,
+            version = version + 1,
+            update_time = #{time},
+            update_by = #{user}
+        where
+            id = #{id}
+        and status = 10
+        and user_id = #{UserIdById}
+        and version = #{version}
+    </update>
+
+    <!--后台端删除订单-->
+    <update id="deleteOrderByIds">
+        update
+        t_order
+        set
+        backend_del_flag = 2,
+        version = version +1,
+        update_time = #{time},
+        update_by = #{user}
+        where
+        status = 10
+        and del_flag ='0'
+        and id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--通过订单id找到对应的箱子编号-->
+    <select id="findBoxCode" resultType="java.lang.Long">
+        select
+            box_code
+        from
+            t_order
+        where
+            id = #{id}
+    </select>
+
+    <!-- 通过订单id设置手机端删除标记-->
+    <update id="setAppDelete">
+        update
+            t_order
+        set
+            app_del_flag = 2
+        where
+            id = #{id}
+        and user_id = #{userId}
+    </update>
+
+    <!--通过订单id查询用户userId-->
+    <select id="findUserIdByOrderId" resultType="java.lang.Long">
+        select
+            user_id
+        from
+            t_order
+        where
+            id = #{id}
+    </select>
+
+    <!--更新重箱相关字段-->
+    <update id="updateHeavyOrder" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo">
+        update
+            t_order
+        set
+            heavy_box_order_time = #{heavyBoxOrderTime},
+            heavy_box_call_name = #{heavyBoxCallName},
+            heavy_box_call_phone = #{heavyBoxCallPhone},
+            heavy_box_call_address = #{heavyBoxCallAddress},
+            heavy_box_call_time = #{heavyBoxCallTime},
+            heavy_box_call_interval = #{heavyBoxCallInterval}
+        where id = #{id}
+    </update>
+
+    <!--批量插入订单历史表-->
+    <insert id="insertOrderHistoryByIds" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into
+        t_order_his
+        (
+        order_id,
+        user_id,
+        status,
+        order_code,
+        order_name,
+        empty_box_order_time,
+        heavy_box_order_time,
+        empty_box_call_time,
+        empty_box_call_phone,
+        empty_box_call_address,
+        empty_box_call_name,
+        empty_box_call_interval,
+        heavy_box_call_name,
+        heavy_box_call_phone,
+        heavy_box_call_address,
+        heavy_box_call_time,
+        heavy_box_call_interval,
+        box_id,
+        box_code,
+        box_standard,
+        box_unit_price,
+        lease_duration,
+        total_price,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag,
+        app_del_flag,
+        backend_del_flag)
+        select
+        id,
+        user_id,
+        status,
+        order_code,
+        order_name,
+        empty_box_order_time,
+        heavy_box_order_time,
+        empty_box_call_time,
+        empty_box_call_phone,
+        empty_box_call_address,
+        empty_box_call_name,
+        empty_box_call_interval,
+        heavy_box_call_name,
+        heavy_box_call_phone,
+        heavy_box_call_address,
+        heavy_box_call_time,
+        heavy_box_call_interval,
+        box_id,
+        box_code,
+        box_standard,
+        box_unit_price,
+        lease_duration,
+        total_price,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag,
+        app_del_flag,
+        backend_del_flag
+        from
+        t_order
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </insert>
+
+    <!--插入订单历史表-->
+    <insert id="insertOrderHistoryById" parameterType="com.ruoyi.project.storage.domain.vo.OrderVo"
+            useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_order_his
+        (
+        order_id,
+        user_id,
+        status,
+        order_code,
+        order_name,
+        empty_box_order_time,
+        heavy_box_order_time,
+        empty_box_call_time,
+        empty_box_call_phone,
+        empty_box_call_address,
+        empty_box_call_name,
+        empty_box_call_interval,
+        heavy_box_call_name,
+        heavy_box_call_phone,
+        heavy_box_call_address,
+        heavy_box_call_time,
+        heavy_box_call_interval,
+        box_id,
+        box_code,
+        box_standard,
+        box_unit_price,
+        lease_duration,
+        total_price,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag,
+        app_del_flag,
+        backend_del_flag)
+        select
+        id,
+        user_id,
+        status,
+        order_code,
+        order_name,
+        empty_box_order_time,
+        heavy_box_order_time,
+        empty_box_call_time,
+        empty_box_call_phone,
+        empty_box_call_address,
+        empty_box_call_name,
+        empty_box_call_interval,
+        heavy_box_call_name,
+        heavy_box_call_phone,
+        heavy_box_call_address,
+        heavy_box_call_time,
+        heavy_box_call_interval,
+        box_id,
+        box_code,
+        box_standard,
+        box_unit_price,
+        lease_duration,
+        total_price,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag,
+        app_del_flag,
+        backend_del_flag
+        from
+            t_order
+        where id = #{id}
+    </insert>
+
+</mapper> 

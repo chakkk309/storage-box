@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.storage.mapper.BoxStandardMapper">
+
+    <resultMap type="com.ruoyi.project.storage.domain.vo.BoxStandardVo" id="BoxStandardResult">
+        <result property="id" column="id"/>
+        <result property="boxStandard" column="box_standard"/>
+        <result property="boxUnitPrice" column="box_unit_price"/>
+        <result property="remark" column="remark"/>
+        <result property="sortNo" column="sort_no"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="version" column="version"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="totalNumber" column="total_number"/>
+        <result property="usedNumber" column="used_number"/>
+        <result property="inventoryNumber" column="inventory_number"/>
+        <result property="useRatio" column="use_ratio"/>
+    </resultMap>
+
+    <resultMap type="com.ruoyi.project.storage.domain.vo.BoxStandardSelectVo" id="BoxStandardSelectResult">
+        <result property="id" column="id"/>
+        <result property="boxStandard" column="box_standard"/>
+        <result property="boxUnitPrice" column="box_unit_price"/>
+    </resultMap>
+
+    <!--可用箱子规格sql-->
+    <sql id="BoxStandardSelectVo">
+         select
+             id,
+             box_standard,
+             box_unit_price
+         from
+             t_box_standard
+    </sql>
+
+    <!--查询箱子规格列表-->
+    <select id="selectBoxStandardList" parameterType="com.ruoyi.project.storage.domain.vo.BoxStandardVo"
+            resultMap="BoxStandardResult">
+        select
+        temp.id,
+        temp.box_standard,
+        temp.box_unit_price,
+        temp.remark,
+        temp.sort_no,
+        temp.create_time,
+        temp.create_by,
+        temp.update_time,
+        temp.update_by,
+        temp.version,
+        temp.del_flag,
+        temp.total as total_number,
+        ifnull(temp.used,0) as used_number,
+        ifnull(temp.total- temp.used, 0) as inventory_number,
+        concat(
+        round(
+        ifnull(temp.used / temp.total, 0) * 100,
+        2
+        ),
+        '%'
+        )
+        as use_ratio
+        from
+        (
+        select
+        standard.id,
+        standard.box_standard,
+        standard.box_unit_price,
+        standard.remark,
+        standard.sort_no,
+        standard.create_time,
+        standard.create_by,
+        standard.update_time,
+        standard.update_by,
+        standard.version,
+        standard.del_flag,
+        count(info.is_used) as total,
+        sum(info.is_used) as used
+        from
+        t_box_standard standard
+        left join t_box_info info on standard.box_standard = info.box_standard
+        and info.del_flag = '0'
+        where
+        standard.del_flag = '0'
+        <if test="searchValue != null and searchValue !=''">
+            and standard.box_standard like concat(replace(#{searchValue},"%","/%"),'%') escape "/"
+        </if>
+        group by standard.box_standard
+        ) temp
+    </select>
+
+    <!--新增箱子规格-->
+    <insert id="insertBoxStandard" parameterType="com.ruoyi.project.storage.domain.vo.BoxStandardVo"
+            useGeneratedKeys="true" keyProperty="id">
+        insert into `t_box_standard`
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="boxStandard !=null and boxStandard !=''">box_standard,</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">box_unit_price,</if>
+            <if test="remark !=null and remark !=''">remark,</if>
+            <if test="sortNo !=null ">sort_no,</if>
+            <if test="createTime !=null ">create_time,</if>
+            <if test="createBy !=null and createBy !=''">create_by,</if>
+            <if test="updateTime !=null ">update_time,</if>
+            <if test="updateBy !=null ">update_by,</if>
+            <if test="version !=null ">version,</if>
+            <if test="delFlag !=null and delFlag !=''">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="boxStandard !=null and boxStandard !=''">#{boxStandard},</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">#{boxUnitPrice},</if>
+            <if test="remark !=null and remark !=''">#{remark},</if>
+            <if test="sortNo !=null ">#{sortNo},</if>
+            <if test="createTime !=null ">#{createTime},</if>
+            <if test="createBy !=null and createBy !=''">#{createBy},</if>
+            <if test="updateTime !=null ">#{updateTime},</if>
+            <if test="updateBy !=null ">#{updateBy},</if>
+            <if test="version !=null ">#{version},</if>
+            <if test="delFlag !=null and delFlag !=''">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <!--删除箱子规格-->
+    <update id="deleteBoxStandardByIds" parameterType="Map">
+        update
+        t_box_standard
+        set
+        del_flag = '2',
+        version = version +1,
+        update_time = #{time},
+        update_by = #{user}
+        where id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--通过箱子规格查询箱子规格信息-->
+    <select id="selectBoxStandardByStandard" parameterType="com.ruoyi.project.storage.domain.vo.BoxStandardVo"
+            resultMap="BoxStandardSelectResult">
+        select
+            id,
+            box_standard,
+            box_unit_price
+        from
+            t_box_standard
+        where del_flag = '0'
+        and box_standard = #{boxStandard}
+    </select>
+
+    <!--通过箱子规格查询每月积分单价-->
+    <select id="selectBoxUnitPriceByStandard" resultType="java.lang.Long">
+        select
+            box_unit_price
+        from
+            t_box_standard
+        where box_standard = #{box_standard}
+    </select>
+
+    <!--通过箱子id查询规格下有无箱子-->
+    <select id="selectBoxInfoCountByIds" parameterType="String" resultType="int">
+        select
+        count(b.id)
+        from
+        t_box_standard a
+        left join t_box_info b on a.box_standard = b.box_standard
+        and b.del_flag = '0'
+        where a.del_flag = '0'
+        and a.id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--查询箱子规格下拉列表-->
+    <select id="selectBoxStandard" resultMap="BoxStandardSelectResult">
+        <include refid="BoxStandardSelectVo"/>
+        where
+        t_box_standard.del_flag ='0'
+        group by
+        t_box_standard.box_standard
+    </select>
+
+</mapper> 

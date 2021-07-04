@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.storage.mapper.AdviceMapper">
+
+    <resultMap type="com.ruoyi.project.storage.domain.vo.AdviceVo" id="AdviceResult">
+        <result property="id" column="id"/>
+        <result property="userId" column="user_id"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="sortNo" column="sort_no"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="version" column="version"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <!--意见建议查询sql-->
+    <sql id="selectAdviceVo">
+        select
+	        a.id,
+	        a.user_id,
+	        u.nick_name,
+	        a.title,
+	        a.content,
+	        a.sort_no,
+	        a.create_time,
+	        a.create_by,
+	        a.update_time,
+	        a.update_by,
+	        a.version,
+	        a.del_flag
+        from
+ 	        t_advice a
+        left join sys_user u on a.user_id = u.user_id
+	</sql>
+
+    <!--意见建议列表查询-->
+    <select id="selectAdviceList" parameterType="com.ruoyi.project.storage.domain.vo.AdviceVo" resultMap="AdviceResult">
+        <include refid="selectAdviceVo"/>
+        <where>
+            and a.del_flag = '0'
+            <if test="searchValue != null and searchValue != '' ">
+                and (
+                u.nick_name like concat(#{searchValue},'%')
+                or a.title like concat(#{searchValue},'%')
+                )
+            </if>
+        </where>
+        order by sort_no asc, update_time desc
+    </select>
+
+    <!--意见建议插入-->
+    <insert id="insertAdvice" parameterType="com.ruoyi.project.storage.domain.vo.AdviceVo" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_advice
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId !=null and userId !=''">user_id,</if>
+            <if test="title !=null and title !=''">title,</if>
+            <if test="content !=null and content !=''">content,</if>
+            <if test="sortNo !=null ">sort_no,</if>
+            <if test="createTime !=null ">create_time,</if>
+            <if test="createBy !=null and createBy !=''">create_by,</if>
+            <if test="updateTime !=null ">update_time,</if>
+            <if test="updateBy !=null and updateBy !=''">update_by,</if>
+            <if test="version !=null ">version,</if>
+            <if test="delFlag !=null and delFlag !=''">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="userId !=null and userId !=''">#{userId},</if>
+            <if test="title !=null and title !=''">#{title},</if>
+            <if test="content !=null and content !=''">#{content},</if>
+            <if test="sortNo !=null ">#{sortNo},</if>
+            <if test="createTime !=null ">#{createTime},</if>
+            <if test="createBy !=null and createBy !=''">#{createBy},</if>
+            <if test="updateTime !=null ">#{updateTime},</if>
+            <if test="updateBy !=null and updateBy !=''">#{updateBy},</if>
+            <if test="version !=null ">#{version},</if>
+            <if test="delFlag !=null and delFlag !=''">#{delFlag},</if>
+        </trim>
+    </insert>
+
+</mapper> 

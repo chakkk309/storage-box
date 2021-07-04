@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.storage.mapper.UserMapper">
+
+    <resultMap type="com.ruoyi.project.storage.domain.User" id="UserResult">
+        <result property="userId" column="user_id"/>
+        <result property="deptId" column="dept_id"/>
+        <result property="userName" column="user_name"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="userType" column="user_type"/>
+        <result property="email" column="email"/>
+        <result property="phonenumber" column="phonenumber"/>
+        <result property="sex" column="sex"/>
+        <result property="avatar" column="avatar"/>
+        <result property="password" column="password"/>
+        <result property="status" column="status"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="loginIp" column="login_ip"/>
+        <result property="loginDate" column="login_date"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="remark" column="remark"/>
+        <result property="currentPoints" column="current_points"/>
+        <result property="version" column="version"/>
+    </resultMap>
+
+    <!--查询sql语句 -->
+    <sql id="selectUser">
+        select
+	        user_id,
+	        dept_id,
+	        user_name,
+	        nick_name,
+	        user_type,
+	        email,
+	        phonenumber,
+	        sex,
+	        avatar,
+	        password,
+	        status,
+	        del_flag,
+	        login_ip,
+	        login_date,
+	        create_time,
+	        create_by,
+	        update_time,
+	        update_by,
+	        remark,
+	        current_points,
+	        version
+        from
+	        sys_user
+	</sql>
+
+    <!--校验用户名是否唯一-->
+    <select id="checkUserNameUnique" parameterType="String" resultType="int">
+        select
+            count(1)
+        from
+            sys_user
+        where user_name = #{userName}
+    </select>
+
+    <!--校验手机号码是否唯一-->
+    <select id="checkPhoneUnique" parameterType="String" resultMap="UserResult">
+        select
+            user_id,
+            phonenumber
+        from
+            sys_user
+        where phonenumber = #{phonenumber}
+    </select>
+
+    <!--校验电子邮箱是否唯一-->
+    <select id="checkEmailUnique" parameterType="String" resultMap="UserResult">
+        select
+            user_id,
+            email
+        from
+            sys_user
+        where email = #{email}
+    </select>
+
+    <!--查询列表-->
+    <select id="selectUserList" parameterType="com.ruoyi.project.storage.domain.User" resultMap="UserResult">
+        <include refid="selectUser"/>
+        <where>
+            and del_flag = '0'
+            <if test="searchValue != null and searchValue != '' ">
+                and (
+                user_name like concat(#{searchValue},'%')
+                or user_name like concat(#{searchValue},'%')
+                or phonenumber like concat(#{searchValue},'%')
+                or email like concat(#{searchValue},'%')
+                )
+            </if>
+            and user_type = #{userType}
+        </where>
+        order by update_time desc
+    </select>
+
+    <!--新增用户-->
+    <insert id="insertUser" parameterType="com.ruoyi.project.storage.domain.User" useGeneratedKeys="true"
+            keyProperty="userId">
+        insert into sys_user
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="deptId !=null ">dept_id,</if>
+            <if test="userName !=null and userName !=''">user_name,</if>
+            <if test="nickName !=null and nickName !=''">nick_name,</if>
+            <if test="userType !=null ">user_type,</if>
+            <if test="email !=null and email !=''">email,</if>
+            <if test="phonenumber !=null and phonenumber !=''">phonenumber,</if>
+            <if test="sex !=null and sex !=''">sex,</if>
+            <if test="avatar !=null ">avatar,</if>
+            <if test="password !=null ">password,</if>
+            <if test="status !=null and status !=''">status,</if>
+            <if test="loginIp !=null ">login_ip,</if>
+            <if test="loginDate !=null ">login_date,</if>
+            <if test="remark !=null ">remark,</if>
+            <if test="currentPoints !=null ">current_points,</if>
+            <if test="createTime !=null ">create_time,</if>
+            <if test="createBy !=null and createBy !=''">create_by,</if>
+            <if test="updateTime !=null ">update_time,</if>
+            <if test="updateBy !=null and updateBy !=''">update_by,</if>
+            <if test="version !=null ">version,</if>
+            <if test="delFlag !=null ">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="deptId !=null and deptId !=''">#{deptId},</if>
+            <if test="userName !=null and userName !=''">#{userName},</if>
+            <if test="nickName !=null and nickName !=''">#{nickName},</if>
+            <if test="userType !=null ">#{userType},</if>
+            <if test="email != null and email !=''">#{email},</if>
+            <if test="phonenumber !=null and phonenumber !=''">#{phonenumber},</if>
+            <if test="sex !=null and sex !=''">#{sex},</if>
+            <if test="avatar !=null ">#{avatar},</if>
+            <if test="password !=null ">#{password},</if>
+            <if test="status !=null ">#{status},</if>
+            <if test="loginIp !=null ">#{loginIp},</if>
+            <if test="loginDate !=null ">#{loginDate},</if>
+            <if test="remark !=null ">#{remark},</if>
+            <if test="currentPoints !=null ">#{currentPoints},</if>
+            <if test="createTime !=null ">#{createTime},</if>
+            <if test="createBy !=null and createBy !=''">#{createBy},</if>
+            <if test="updateTime !=null ">#{updateTime},</if>
+            <if test="updateBy !=null and updateBy !=''">#{updateBy},</if>
+            <if test="version !=null ">#{version},</if>
+            <if test="delFlag !=null ">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <!--修改用户信息-->
+    <update id="updateUser" parameterType="com.ruoyi.project.storage.domain.User">
+        update sys_user
+        <trim prefix="SET" suffixOverrides=",">
+            <if test="userId !=null and userId !=''">user_id = #{userId},</if>
+            <if test="deptId !=null ">dept_id = #{deptId},</if>
+            <if test="userName !=null and userName !=''">user_name = #{userName},</if>
+            <if test="nickName !=null and nickName !=''">nick_Name= #{nickName},</if>
+            <if test="userType !=null ">user_type = #{userType},</if>
+            <if test="email !=null and email !=''">email = #{email},</if>
+            <if test="phonenumber !=null and phonenumber !=''">phonenumber = #{phonenumber},</if>
+            <if test="sex !=null and sex!= ''">sex = #{sex},</if>
+            <if test="avatar !=null ">avatar = #{avatar},</if>
+            <if test="password !=null ">password = #{password},</if>
+            <if test="status !=null and status !=''">status = #{status},</if>
+            <if test="loginIp !=null and loginIp !=''">login_ip = #{loginIp},</if>
+            <if test="loginDate !=null ">login_date = #{loginDate},</if>
+            <if test="remark !=null ">remark = #{remark},</if>
+            <if test="currentPoints !=null ">current_points = #{currentPoints},</if>
+            <if test="createTime !=null ">create_time = #{createTime},</if>
+            <if test="createBy !=null and createBy !=''">create_by = #{createBy},</if>
+            <if test="updateTime !=null ">update_time = #{updateTime},</if>
+            <if test="updateBy !=null and updateBy !=''">update_by = #{updateBy},</if>
+            version = version +1,
+            <if test="delFlag !=null ">del_flag = #{delFlag},</if>
+        </trim>
+        where
+        user_id = #{userId}
+        and version = #{version}
+    </update>
+
+    <!--删除用户-->
+    <update id="deleteUserByIds">
+        update sys_user
+        set del_flag = '2',
+        version = version +1,
+        update_time = #{time},
+        update_by = #{user}
+        where status = 1
+        and user_id in
+        <foreach item="userId" collection="ids" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+    <!--重置密码-->
+    <update id="resetPwdUserByIds">
+        update sys_user
+        set password = #{password},
+        version = version +1,
+        update_time = #{time},
+        update_by = #{user}
+        where del_flag = '0'
+        and user_type = #{userType}
+        and user_id in
+        <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+    <!--修改密码-->
+    <update id="updateUserPassword" parameterType="com.ruoyi.project.storage.domain.User" useGeneratedKeys="true"
+            keyProperty="userId">
+        update sys_user
+        set password = #{password},
+        version = version +1,
+        update_time = #{updateTime},
+        update_by = #{updateBy}
+        where del_flag = '0'
+        and user_type = #{userType}
+        and user_name = #{userName}
+    </update>
+
+    <!--用户停用/启用-->
+    <update id="operateUserByIds">
+        update sys_user
+        set
+        <if test="operate != null and operate =='enable'.toString()">
+            status = '0',
+        </if>
+        <if test="operate != null and operate =='disable'.toString()">
+            status = '1',
+        </if>
+        version = version + 1,
+        update_time = #{time},
+        update_by = #{user}
+        where del_flag = '0'
+        and user_id in
+        <foreach item="userId" collection="userIds" open="(" separator="," close=")">
+            #{userId}
+        </foreach>
+    </update>
+
+    <!--查询用户当前总积分-->
+    <select id="getCurrentPoints" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select current_points
+        from sys_user
+        where del_flag = '0'
+        and user_id = #{userId}
+    </select>
+
+    <!--操作用户积分-->
+    <update id="operateUserPoints" parameterType="com.ruoyi.project.storage.domain.PointRecord">
+        update sys_user
+        set current_points = current_points + #{currentPoints},
+        version = version + 1,
+        update_time = #{updateTime},
+        update_by = #{updateBy}
+        where del_flag = '0'
+        and user_id = #{userId}
+    </update>
+
+    <!--通过客户id操作客户积分-->
+    <update id="updateUserPoints">
+        update sys_user
+        set current_points = #{currentPoints},
+        version = version + 1,
+        update_time = #{updateTime},
+        update_by = #{updateBy}
+        where del_flag = '0'
+        and user_id = #{userId}
+    </update>
+
+    <!--通过用户id查询用户信息-->
+    <select id="selectUserByUserId" resultType="com.ruoyi.project.storage.domain.User">
+        <include refid="selectUser"/>
+        where user_id = #{userId}
+    </select>
+
+    <!--通过用户id查询用户当前积分-->
+    <select id="selectUserPointByUserId" resultType="java.lang.Long">
+        select current_points
+        from sys_user
+        where user_id = #{userId}
+    </select>
+
+    <!--通过用户id获取用户类型-->
+    <select id="selectUserTypeByUserId" resultType="java.lang.String">
+        select user_type
+        from sys_user
+        where user_id = #{userId}
+    </select>
+
+</mapper> 

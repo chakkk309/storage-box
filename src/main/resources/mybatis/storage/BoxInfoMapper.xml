@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ruoyi.project.storage.mapper.BoxInfoMapper">
+
+    <resultMap type="com.ruoyi.project.storage.domain.vo.BoxInfoVo" id="BoxInfoResult">
+        <result property="id" column="id"/>
+        <result property="boxCode" column="box_code"/>
+        <result property="boxStandard" column="box_standard"/>
+        <result property="boxUnitPrice" column="box_unit_price"/>
+        <result property="usedBy" column="used_by"/>
+        <result property="isUsed" column="is_used"/>
+        <result property="usedByName" column="nick_name"/>
+        <result property="remark" column="remark"/>
+        <result property="sortNo" column="sort_no"/>
+        <result property="createTime" column="create_time"/>
+        <result property="createBy" column="create_by"/>
+        <result property="updateTime" column="update_time"/>
+        <result property="updateBy" column="update_by"/>
+        <result property="version" column="version"/>
+        <result property="delFlag" column="del_flag"/>
+    </resultMap>
+
+    <!--查询箱子信息sql-->
+    <sql id="selectBoxInfoVo">
+       select
+            a.id,
+	        a.box_code,
+	        a.box_standard,
+	        a.box_unit_price,
+        	a.used_by,
+	        b.nick_name,
+	        a.is_used,
+        	a.remark,
+        	a.sort_no,
+	        a.create_time,
+        	a.create_by,
+        	a.update_time,
+        	a.update_by,
+	        a.version,
+        	a.del_flag
+        from
+	        t_box_info a
+        left join sys_user b on a.used_by = b.user_id
+        where a.del_flag = 0
+	</sql>
+
+    <!--查询箱子信息-->
+    <select id="selectBoxInfoList" parameterType="com.ruoyi.project.storage.domain.vo.BoxInfoVo"
+            resultMap="BoxInfoResult">
+        <include refid="selectBoxInfoVo"/>
+        <if test="boxStandard !=null and boxStandard !=''">
+            and a.box_standard = #{boxStandard}
+        </if>
+        <if test="isUsed !=null">
+            and a.is_used = #{isUsed}
+        </if>
+        <if test="usedByName !=null and usedByName !=''">
+            and b.nick_name like concat(replace(#{usedByName},"%","/%"),'%') escape "/"
+        </if>
+        order by a.update_time desc
+    </select>
+
+    <!--新增箱子信息-->
+    <insert id="insertBoxInfo" parameterType="com.ruoyi.project.storage.domain.vo.BoxInfoVo" useGeneratedKeys="true"
+            keyProperty="id">
+        insert into t_box_info
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="boxCode !=null ">box_code,</if>
+            <if test="boxStandard !=null and boxStandard !=''">box_standard,</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">box_unit_price,</if>
+            <if test="usedBy !=null ">used_by,</if>
+            <if test="isUsed !=null ">is_used,</if>
+            <if test="remark !=null and remark !=''">remark,</if>
+            <if test="sortNo !=null ">sort_no,</if>
+            <if test="createTime !=null ">create_time,</if>
+            <if test="createBy !=null and createBy !=''">create_by,</if>
+            <if test="updateTime !=null ">update_time,</if>
+            <if test="updateBy !=null ">update_by,</if>
+            <if test="version !=null ">version,</if>
+            <if test="delFlag !=null and delFlag !=''">del_flag,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="boxCode !=null ">#{boxCode},</if>
+            <if test="boxStandard !=null and boxStandard !=''">#{boxStandard},</if>
+            <if test="boxUnitPrice !=null and boxUnitPrice !=''">#{boxUnitPrice},</if>
+            <if test="usedBy !=null ">#{usedBy},</if>
+            <if test="isUsed !=null ">#{isUsed},</if>
+            <if test="remark !=null and remark !=''">#{remark},</if>
+            <if test="sortNo !=null ">#{sortNo},</if>
+            <if test="createTime !=null ">#{createTime},</if>
+            <if test="createBy !=null and createBy !=''">#{createBy},</if>
+            <if test="updateTime !=null ">#{updateTime},</if>
+            <if test="updateBy !=null ">#{updateBy},</if>
+            <if test="version !=null">#{version},</if>
+            <if test="delFlag !=null and delFlag !=''">#{delFlag},</if>
+        </trim>
+    </insert>
+
+    <!--删除箱子信息-->
+    <update id="deleteBoxInfoByIds" parameterType="Map">
+        update t_box_info
+        set del_flag = '2',
+        version = version +1,
+        update_time = #{time},
+        update_by = #{user}
+        where is_used = 0
+        and id in
+        <foreach item="id" collection="ids" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--通过箱子id查询订单是否已完成-->
+    <select id="selectBoxOrderCountByIds" parameterType="String" resultType="int">
+        select
+        count(b.id)
+        from
+        t_box_info a
+        left join t_order b on a.id = b.box_id
+        where b.status!= '10'
+        and a.id in
+        <foreach item="id" collection="array" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <!--批量新增箱子信息-->
+    <insert id="batchInsertBoxInfo" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        insert into t_box_info (
+        box_code,
+        box_standard,
+        box_unit_price,
+        used_by,
+        is_used,
+        remark,
+        sort_no,
+        create_time,
+        create_by,
+        update_time,
+        update_by,
+        version,
+        del_flag
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator=",">
+            (
+            #{item.boxCode},
+            #{item.boxStandard},
+            #{item.boxUnitPrice},
+            #{item.usedBy},
+            #{item.isUsed},
+            #{item.remark},
+            #{item.sortNo},
+            #{item.createTime},
+            #{item.createBy},
+            #{item.updateTime},
+            #{item.updateBy},
+            #{item.version},
+            #{item.delFlag}
+            )
+        </foreach>
+    </insert>
+
+    <!--查询某一规格下所有可用的箱子列表-->
+    <select id="selectUsedBoxInfo" parameterType="com.ruoyi.project.storage.domain.vo.BoxInfoVo"
+            resultMap="BoxInfoResult">
+        <include refid="selectBoxInfoVo"/>
+        and a.is_used = 0
+        and a.box_standard = #{boxStandard}
+    </select>
+
+    <!--更新箱子信息（已使用）-->
+    <update id="updateBoxInfo" parameterType="com.ruoyi.project.storage.domain.vo.BoxInfoVo">
+        update
+            t_box_info
+        set
+            used_by = #{usedBy},
+            is_used = 1,
+            version = version + 1,
+            update_by = #{updateBy},
+            update_time = #{updateTime}
+        where id = #{id}
+        and version = #{version}
+    </update>
+
+    <!--通过箱子编号更新箱子信息-->
+    <update id="updateBoxInfoByBoxId">
+        update
+            t_box_info
+        set
+            used_by = null,
+            is_used = 0
+        where box_code = #{boxCode}
+    </update>
+
+</mapper> 
